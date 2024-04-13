@@ -1,12 +1,9 @@
-# pip install pyaudio
-# import time
 import mysql.connector
 # pip install setuptools 
 # from bot.views import username_value   
 import pywhatkit as kit
 import pyautogui as pt  # mouse and keyboard control
 import os
-# import openai
 import pyttsx3   # text to speech
 import speech_recognition as sr #pip install speechRecognition
 import datetime
@@ -16,29 +13,23 @@ import smtplib  #mail use
 import threading
 import time
 import requests
-# import playsound  # Import after installation
-# from datetime import datetime, timedelta
-# import winsound
 
-engine = pyttsx3.init('sapi5')
-voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[0].id)
-# print(voices[1].id)
-rate = engine.setProperty("rate",200)
-
-# print(voices)
-def remind(remind_audio):
+def reminder_speak(remind_audio):
     remind_engine = pyttsx3.init('sapi5')
     remind_voices = remind_engine.getProperty('voices')
     remind_engine.setProperty('voice', remind_voices[0].id)
-    # print(voices[1].id)
     remind_rate = remind_engine.setProperty("rate",200)
 
     remind_engine.say(remind_audio)
     remind_engine.runAndWait()
+    remind_engine.stop()
 
 
 def speak(audio):
+    engine = pyttsx3.init('sapi5')
+    voices = engine.getProperty('voices')
+    engine.setProperty('voice', voices[0].id)
+    rate = engine.setProperty("rate",200)
     engine.say(audio)
     engine.runAndWait()
 
@@ -84,17 +75,6 @@ def sendEmail(to, content):
     server.sendmail('getvanshjain11@gmail.com', to, content)
     server.close()
 
-my_thread=None
-
-def my_thread_function(timeout):
-    try:
-        print("Thread is running...")
-        # ... perform some operations here
-        time.sleep(timeout)
-        remind("Time is out")
-        
-    except :
-        print("Thread was interrupted while sleeping.")
 
 def work(user_name):
 
@@ -212,37 +192,20 @@ def work(user_name):
                 except Exception as e:
                     print(e)
                     speak("Sorry '{}'. I am not able to restart right now".format(user_name))
+        # This functionality will work for input like ("captain remind me at 9:45 PM")
         elif 'remind me' in query:
             
             time_extracted=extract_time(query)
             print(time_extracted)
-            # hour, minute=time_extracted.strftime("%H"), time_extracted.strftime("%M")
-            # alarm_time_str = "extract time from query"  # Placeholder
-            alarm_time = time_extracted
-
-            # Calculate time delta until alarm
-            now = datetime.datetime.now()
-            print("Now:",now)
-            if alarm_time!=None:
-                delta = alarm_time - now
-                print("Delta:",delta)
-                global timeout, my_thread
-                timeout=delta.seconds
-                if delta < datetime.timedelta(seconds=0):  # Handle cases where time has passed
-                    speak("Alarm time has already passed.")
-                    return
-                else:
-                    speak("The Alarm has been set for {}".format(time_extracted.strftime("%I:%M %p")))
-                    my_thread = threading.Thread(target=my_thread_function, args=(timeout,))
-                    my_thread.start()
-                   
+            speak("What should I remind you?")
+            reminder_text=takeMessage().lower()
+            
+            if time_extracted and reminder_text!="none":
+                set_reminder(time_extracted, reminder_text)
+                
             else:
-                speak("Sorry couldn't set time")
-            
-            
-            
-            # print(hour)
-            # print(minute)
+                speak("Sorry, I couldn't understand the time for the reminder.")
+
         elif 'weather' in query:
             # Provide your OpenWeatherMap API key here
             api_key = '0e7565793df0658d7e5c8c8c4bfcc109'
@@ -254,6 +217,28 @@ def work(user_name):
             get_weather(api_key, city)
         else:
             print("No query matched")
+
+# Global reminder thread
+reminder_thread = None
+
+def set_reminder(alarm_time, reminder_text):
+    now = datetime.datetime.now()
+    print("Alarm time :", alarm_time)
+    print("Current Time :", now)
+    if alarm_time > now:
+        delta = (alarm_time - now).total_seconds()
+        print("Difference :", delta)
+        speak("The Alarm has been set for {}".format(alarm_time.strftime("%I:%M %p")))
+        # This will execute remind() function after waiting for delta seconds in a seperate Thread
+        global reminder_thread
+        reminder_thread = threading.Timer(delta, remind, args=(reminder_text,))
+        reminder_thread.start()
+    else:
+        speak("Alarm time has already passed.")
+
+def remind(reminder_text):
+    reminder_speak(f"Reminder: {reminder_text}")
+
 def get_weather(api_key, city):
     # url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     url=f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
@@ -326,15 +311,15 @@ def start_program(username_value):
     speak("Initializing CAPTAIN")
     user = username_value
     wishMe(user)
-    global my_thread
     while True:
         
         a = work(user)
         
         if(a == 'out'):
             print("Exiting Program..")
-            
-            
+            if reminder_thread: # if the reminder thread has been created or not
+                if reminder_thread.is_alive():
+                    speak("Alarm is still active!")
             speak("!!!!Exiting Program..")
             break
         
