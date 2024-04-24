@@ -284,8 +284,8 @@ bot_thread=threading.Thread(target=start_thread)
 mycon = mysql.connector.connect(
     host = 'localhost',
     user = 'root',
-    password = 'gatij',
-    database = 'captain'
+    password = '12345678',
+    database = 'captaindb'
 )
 
 cur = mycon.cursor()
