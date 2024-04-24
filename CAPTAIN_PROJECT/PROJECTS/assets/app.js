@@ -81,21 +81,8 @@ navigator.getBattery().then((battery) => {
     });
 });
 
-
-btn.addEventListener('click', () => {
-
-    {
-        var url = '/runbot/';
-
-        // Navigate to the URL
-        window.location.href = url;
-    }
-	
-	// setTimeout(() => {
-	// 	if (recognitionStarted) {
-	// 		content.textContent = "Listening...."; // Update content to "Listening...."
-	// 		recognition.start(); // Start speech recognition immediately
-	// 		recognitionStarted = true; // Update the flag to indicate recognition started
-	// 	}
-	// }, 5000);
+btn.addEventListener("click" , function() {
+    window.location.href = '/runbot/';
+    console.log("clicked");
+    document.querySelector('i').style.display = 'none';
 });
