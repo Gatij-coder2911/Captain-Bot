@@ -1,3 +1,11 @@
+# Captain Bot
+Captain is a Voice controlled python bot that can perform specific instructions. It also stores the command logs of that user using MySQL Database.
+
+  ![captain](https://github.com/user-attachments/assets/503ebd46-c86a-4656-b176-84e3b947e2ba)
+
+## Implementation
+  - Web based (Django) - Captain is implemented on a website using Django Framework.
+  - GUI based (Tkinter) - We have also made a GUI prototype for software implementation using Tkinter.
 # Pacakages to Install
   ## GUI Requirements
   - `pip install tkinter`
